@@ -11,3 +11,21 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.sudoku_row{
+  height: 20px;
+  display: flex;
+}
+
+.sudoku_item{
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 1px solid lightblue;
+  text-align: center;
+  line-height: 20px;
+}
+.noinit{
+  background: #e6f1f9;;
+  color: #527eaf;
+}
