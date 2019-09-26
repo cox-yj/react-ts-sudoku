@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SudokuGame } from './sudoku';
-const sudoku = new SudokuGame(16)
+import SudokuGame from './sudoku';
+const sudoku = new SudokuGame(50)
 // new SudokuGame()
 const Play = () => {
   const [sudokuArr, setSudokuArr] = useState(sudoku.sudoKuArr)
@@ -8,45 +8,73 @@ const Play = () => {
 
   const [nowItem, setNowItem] = useState(null);
 
-  const initSudoku = () => {
-    setSudokuArr(sudoku.initSudoku())
+  // 开始游戏
+  const startGame = () => {
+    sudoku.startGame()
+    setSudokuArr([...sudoku.sudoKuArr])
   }
 
-  const writeItem = (item) => {
+  // 从头开始
+  const againGame = () => {
+    sudoku.againGame()
+    setSudokuArr([...sudoku.sudoKuArr])
+  }
+
+  // 点击空白格
+  const selectItem = (item) => {
+    if (!item.isChange) return
     const tempArr = sudoku.effectiveAnswers(sudokuArr, item)
     setNowItem(item)
     setAnswersArr(tempArr)
   }
 
-  const selectItem = (num) => {
+  // 写入空白格
+  const writeItem = (num) => {
     console.error(num)
-    sudoku.setItem(nowItem, num)
+    sudoku.writeItem(nowItem, num)
+
     setNowItem(null)
+    setSudokuArr([...sudoku.sudoKuArr])
+    setAnswersArr([])
+  }
+
+  // 下一步
+  const prevStep = () => {
+    sudoku.prevStep()
+    setSudokuArr([...sudoku.sudoKuArr])
+  }
+
+  // 上一步
+  const nextStep = () => {
+    sudoku.nextStep()
+    setSudokuArr([...sudoku.sudoKuArr])
   }
 
   return (<div className={'sudoku_wrap'}>
     <div className={'sudoku_header'} >
-        <button onClick={initSudoku}>重新创建</button>
-        <button>上一步</button>
-        <button>下一步</button>
-        <button>回到第一步</button>
-      </div>
+      <button className={'button'} onClick={startGame}>开始游戏</button>
+      <button className={'button'} onClick={prevStep}>上一步</button>
+      <button className={'button'} onClick={nextStep}>下一步</button>
+      <button className={'button'} onClick={againGame}>回到第一步</button>
+    </div>
+    <div className={'sudoku_content'}>
       <div className={'sudoku_board'}>
-      {sudokuArr.map((row, i) => {
-      return <div key={i} className={'sudoku_row'} >
-        {row.map(item => {
-          return <span key={item.id} className={`sudoku_item ${item.isInitData ? '' : 'noinit'}`} onClick={() => {writeItem(item)}}> {item.num || ''}</span>
+        {sudokuArr.map((row, i) => {
+          return <div key={i} className={'sudoku_row'} >
+            {row.map(item => {
+              return <span key={item.id} id={item.id} className={`sudoku_item ${item.isChange ? 'noinit' : ''}`} onClick={() => { selectItem(item) }}> {item.num || ''}</span>
+            })}
+          </div>
         })}
-      </div>
-    })}
       </div>
       <div className={'sudoku_write'}>
         {
           answersArr.map(item => {
-            return <span key={item} onClick={()=> {selectItem(item)}}> {item }</span>
+            return <span className={'select_item'} key={item} onClick={() => { writeItem(item) }}> {item}</span>
           })
         }
       </div>
+    </div>
   </ div>)
 }
 export default Play
