@@ -72,3 +72,28 @@ code {
     line-height: 30px;
     margin: 9px;
 }
+
+
+/* .sudoku_row :nth-child(3n) {
+    border-right: 1px solid blue;
+}
+
+.sudoku_row :nth-child(9) {
+    border-right: 1px solid lightblue;
+} */
+
+.sudoku_row :nth-child(3) {
+    border-right: 1px solid #005afd;
+}
+
+.sudoku_row :nth-child(6) {
+    border-right: 1px solid #005afd;
+}
+
+.sudoku_board :nth-child(3) .sudoku_item {
+    border-bottom: 1px solid #005afd;
+}
+
+.sudoku_board :nth-child(6) .sudoku_item {
+    border-bottom: 1px solid #005afd;
+}

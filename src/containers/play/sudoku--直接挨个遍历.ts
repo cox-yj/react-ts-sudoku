@@ -1,4 +1,4 @@
-import { randomItem, randomItems, randomItemPlus, shuffle } from '../../utils/utils'
+import { randomItem, randomItems, shuffle } from '../../utils/utils'
 
 
 class SudokuItem {
@@ -29,13 +29,9 @@ class Sudoku {
     constructor(difficulty) {
         this.count = 0
         this.difficulty = difficulty;
-
+        
         // const sudoKuArr: SudokuItem[][] = 
-        let sudokuArr = this.initSudoku();
-        // let sudokuArr = this.createSudoku(this.initSudoku());
-        setTimeout(() => {
-            this.sudokuArr = this.createSudoku(this.initSudoku());
-        }, 0)
+        let sudokuArr = this.createSudoku(this.initSudoku());
         this.sudokuArr = this.itemEmpty(difficulty, sudokuArr)
     }
 
@@ -50,104 +46,56 @@ class Sudoku {
                 sudokuArr[i][j] = new SudokuItem(0, i, j)
             }
         }
-        // [0, 4, 8].forEach(block => {
-        //     const numArr = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])
-        //     const blockArr = this.getBlockArr(sudokuArr, block)
-        //     for (let i = 0; 9 > i; i++) {
-        //         blockArr[i].num = numArr[i];
+        [0, 4, 8].forEach(block => {
+            const numArr = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])
+            const blockArr = this.getBlockArr(sudokuArr, block)
+            for (let i = 0; 9 > i; i++) {
+                blockArr[i].num = numArr[i];
 
-        //     }
-        // })
+            }
+        })
 
         return sudokuArr
     }
-    // count=0
-    arr = []
+
     // 初始化数独  新的思路 分块生成 这样可以考虑的元素就会多一点  之前按行考虑
     createSudoku = (sudokuArr): SudokuItem[][] => {
-        this.sudokuArr = sudokuArr
-        const arr = []
-        sudokuArr.forEach(row => arr.push(...row))
-        this.arr = arr.map((item, i) => ({ index: i, ...item, validArr: null }))
-        this.ceateBack(this.arr[0])
-        console.error(this.count, this.sudokuArr.map(row => row.map(item => item.num)))
+        this.count = this.count + 1;
+        const sudokuArr1 = JSON.parse(JSON.stringify(sudokuArr));
 
-
-
-        return this.sudokuArr;
-    }
-
-    // 思路： 将二维数组打散 逐个找解 如果当前无解就去找上一个换个解， 如果上一个也没有解了 那就再还上一个
-    ceateBack(item) {
-        this.count++
-        try {
-            console.error(this.arr.map(item => item.num).filter(item => item).length)
-            const { index, validArr } = item;
-            // 如果不是null 那就是从下一个找上来的
-            if (validArr !== null) {
-                if (!item.validArr.length) {
-                    this.arr[index] = {
-                        ...this.arr[index],
-                        validArr: null,
-                        num: 0
-                    }
-                    this.sudokuArr[this.arr[index].row][this.arr[index].columns].num = 0
-                    return this.ceateBack(this.arr[index - 1])
-                }
-                const [validArr1, num] = randomItemPlus(item.validArr)
-                // 如果当前元素 也是无解了 那么将它数据初始化 然后接着超上找
-                if (!num) {
-                    this.arr[index] = {
-                        ...this.arr[index],
-                        validArr: null,
-                        num: 0
-                    }
-                    this.sudokuArr[this.arr[index].row][this.arr[index].columns].num = 0
-                    return this.ceateBack(this.arr[index - 1])
-                }
-
-                this.arr[index] = {
-                    ...this.arr[index],
-                    validArr: validArr1,
-                    num,
-                }
-                this.sudokuArr[this.arr[index].row][this.arr[index].columns].num = num
-                if (index < 80) {
-                    return this.ceateBack(this.arr[index + 1])
-                } else {
-                    return console.error('生成了')
-                }
+        for (let i = 0; 9 > i; i++) {
+            for (let j = 0; 9 > j; j++) {
+                const item = sudokuArr1[i][j];
+                if(item.num) continue
+                const tempArr = this.effectiveAnswers(sudokuArr1, item)
+                const itemNum = randomItem(tempArr)
+                if (!itemNum) return this.createSudoku(sudokuArr);
+                item.num = itemNum
             }
-
-
-
-            const [validArr1, num] = randomItemPlus(this.effectiveAnswers(this.sudokuArr, item))
-            if (!num) {
-                this.arr[index] = {
-                    ...this.arr[index],
-                    validArr: null,
-                    num: 0
-                }
-                this.sudokuArr[this.arr[index].row][this.arr[index].columns].num = 0
-                return this.ceateBack(this.arr[index - 1])
-            }
-
-            this.arr[index] = {
-                ...this.arr[index],
-                validArr: validArr1,
-                num,
-            }
-            this.sudokuArr[this.arr[index].row][this.arr[index].columns].num = num
-            if (index < 80) {
-                return this.ceateBack(this.arr[index + 1])
-            } else {
-                return console.error('生成了')
-            }
-        } catch (error) {
-            debugger
         }
+        return sudokuArr1;
+        // return sudokuArr;
     }
 
+    // 初始化块
+    createSudokuBlock(block, sudokuArr) {
+        console.error('block===>', block);
+        const sudokuArr1 = JSON.parse(JSON.stringify(sudokuArr));
+        let blockArr = this.getBlockArr(sudokuArr, block);
+
+        for (let i = 0; 9 > i; i++) {
+            const item = blockArr[i]
+            const tempArr = this.effectiveAnswers(sudokuArr1, item)
+            if (!tempArr.length) {
+                debugger
+                return this.createSudokuBlock(block, sudokuArr)
+            };
+            const itemNum = randomItem(tempArr)
+            sudokuArr1[item.row][item.columns].num = itemNum
+            // item.num = itemNum
+        }
+        return sudokuArr1
+    }
 
     // 设置空格 
     itemEmpty(difficulty, sudokuArr) {
@@ -203,7 +151,7 @@ class Sudoku {
         const arr = [...rowStr, ...columnsStr, ...blockStr].filter(item => item)
 
         all = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(item => arr.indexOf(item) === -1)
-        // console.error(all)
+        console.error(all)
         return all
     }
 
