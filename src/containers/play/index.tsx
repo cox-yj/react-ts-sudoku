@@ -1,30 +1,28 @@
 import React, { useState } from 'react';
-import SudokuGame from './sudoku';
-const sudoku = new SudokuGame(0)
-console.error(123)
+import sudokuService from './sudokuService';
 // new SudokuGame()
 const Play = () => {
-  const [sudokuArr, setSudokuArr] = useState(sudoku.sudokuArr)
+  const [sudokuArr, setSudokuArr] = useState(sudokuService.sudokuArr)
   const [answersArr, setAnswersArr] = useState([])
 
   const [nowItem, setNowItem] = useState(null);
 
   // 开始游戏
   const startGame = () => {
-    sudoku.startGame()
-    setSudokuArr([...sudoku.sudokuArr])
+    sudokuService.createSudoku(3)
+    setSudokuArr([...sudokuService.sudokuArr])
   }
 
   // 从头开始
   const againGame = () => {
-    sudoku.againGame()
-    setSudokuArr([...sudoku.sudokuArr])
+    sudokuService.againGame()
+    setSudokuArr([...sudokuService.sudokuArr])
   }
 
   // 点击空白格
   const selectItem = (item) => {
     if (!item.isChange) return
-    const tempArr = sudoku.effectiveAnswers(sudokuArr, item)
+    const tempArr = sudokuService.effectiveAnswers(sudokuArr, item)
     if(!tempArr.length) return alert('无解了!');
     setNowItem(item)
     setAnswersArr(tempArr)
@@ -33,23 +31,23 @@ const Play = () => {
   // 写入空白格
   const writeItem = (num) => {
     console.error(num)
-    sudoku.writeItem(nowItem, num)
+    sudokuService.writeItem(nowItem, num)
 
     setNowItem(null)
-    setSudokuArr([...sudoku.sudokuArr])
+    setSudokuArr([...sudokuService.sudokuArr])
     setAnswersArr([])
   }
 
   // 下一步
   const prevStep = () => {
-    sudoku.prevStep()
-    setSudokuArr([...sudoku.sudokuArr])
+    sudokuService.prevStep()
+    setSudokuArr([...sudokuService.sudokuArr])
   }
 
   // 上一步
   const nextStep = () => {
-    sudoku.nextStep()
-    setSudokuArr([...sudoku.sudokuArr])
+    sudokuService.nextStep()
+    setSudokuArr([...sudokuService.sudokuArr])
   }
   // console.error('sudokuArr===>', sudokuArr)
   return (<div className={'sudoku_wrap'}>
