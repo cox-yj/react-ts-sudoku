@@ -59,81 +59,96 @@ class Sudoku {
             this.ceateBack(this.flatArr[0])
             this.sudokuArr = this.itemEmpty(difficulty, this.sudokuArr)
             console.error(`初始化成功！ 用时：${(new Date().getTime() - date)} ms, ${this.count}`)
+            this.count = 0;
             resolve()
         })
     }
 
-    // 核心思路： 回溯，将二维数组打散 逐个找解 如果当前无解就去找上一个换个解， 如果上一个也没有解了 那就再还上一个
+    /**
+     *  核心思路：(flatArr 有点双向链表的意思) 回溯，将二维数组打散 逐个找解 如果当前无解就去找上一个换个解， 如果上一个也没有解了 那就再还上一个
+     * item1 -> item2 -> item3
+     * item1 -> item2 <- item3  --如果从item3发现没有解，在回到item2换个解，然后再找到下一个item3找解
+     * item1 -> item2 -> item3 -> item4
+    */
     ceateBack(item) {
         this.count++
         try {
             // console.error(this.flatArr.map(item => item.num).filter(item => item).length)
-            const { index, validArr } = item;
             // 如果不是null 那就是从下一个找上来的
-            if (validArr !== null) {
-                if (!item.validArr.length) {
-                    this.flatArr[index] = {
-                        ...this.flatArr[index],
-                        validArr: null,
-                        num: 0
-                    }
-                    this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
-                    return this.ceateBack(this.flatArr[index - 1])
-                }
-                const [validArr1, num] = randomItemPlus(item.validArr)
-                // 如果当前元素 也是无解了 那么将它数据初始化 然后接着超上找
-                if (!num) {
-                    this.flatArr[index] = {
-                        ...this.flatArr[index],
-                        validArr: null,
-                        num: 0
-                    }
-                    this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
-                    return this.ceateBack(this.flatArr[index - 1])
-                }
-
-                this.flatArr[index] = {
-                    ...this.flatArr[index],
-                    validArr: validArr1,
-                    num,
-                }
-                this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = num
-                if (index < 80) {
-                    return this.ceateBack(this.flatArr[index + 1])
-                } else {
-                    return 
-                }
+            if (item.validArr !== null) {
+                return this.goBack(item)
             }
-
-
-            // 正常下一个逻辑
-            const [validArr1, num] = randomItemPlus(this.effectiveAnswers(this.sudokuArr, item))
-            if (!num) {
-                this.flatArr[index] = {
-                    ...this.flatArr[index],
-                    validArr: null,
-                    num: 0
-                }
-                this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
-                return this.ceateBack(this.flatArr[index - 1])
-            }
-
-            this.flatArr[index] = {
-                ...this.flatArr[index],
-                validArr: validArr1,
-                num,
-            }
-            this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = num
-            if (index < 80) {
-                return this.ceateBack(this.flatArr[index + 1])
-            } else {
-                return 
-            }
+            return this.goNext(item)
         } catch (error) {
             console.error('出错了(ceateBack)==>', error)
         }
     }
 
+    // 朝上找一个
+    goBack(item) {
+        const { index } = item;
+        if (!item.validArr.length) {
+            this.flatArr[index] = {
+                ...this.flatArr[index],
+                validArr: null,
+                num: 0
+            }
+            this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
+            return this.ceateBack(this.flatArr[index - 1])
+        }
+        const [validArr1, num] = randomItemPlus(item.validArr)
+        // 如果当前元素 也是无解了 那么将它数据初始化 然后接着超上找
+        if (!num) {
+            this.flatArr[index] = {
+                ...this.flatArr[index],
+                validArr: null,
+                num: 0
+            }
+            this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
+            return this.ceateBack(this.flatArr[index - 1])
+        }
+
+        this.flatArr[index] = {
+            ...this.flatArr[index],
+            validArr: validArr1,
+            num,
+        }
+        this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = num
+        if (index < 80) {
+            return this.ceateBack(this.flatArr[index + 1])
+        } else {
+            return
+        }
+    }
+
+    // 朝下找一个
+    goNext(item) {
+        // 正常下一个逻辑
+        const { index } = item;
+        const [validArr1, num] = randomItemPlus(this.effectiveAnswers(this.sudokuArr, item))
+        if (!num) {
+            this.flatArr[index] = {
+                ...this.flatArr[index],
+                validArr: null,
+                num: 0
+            }
+            this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = 0
+            return this.ceateBack(this.flatArr[index - 1])
+        }
+
+        this.flatArr[index] = {
+            ...this.flatArr[index],
+            validArr: validArr1,
+            num,
+        }
+        this.sudokuArr[this.flatArr[index].row][this.flatArr[index].columns].num = num
+        if (index < 80) {
+            return this.ceateBack(this.flatArr[index + 1])
+        } else {
+            // this.count = 0;
+            return
+        }
+    }
 
     // 设置空格 
     itemEmpty(difficulty, sudokuArr) {
@@ -216,20 +231,15 @@ export class SudokuService extends Sudoku {
     }
 
     // 从头开始
-    againGame() {
-        this.sudokuArr = JSON.parse(JSON.stringify(this.sudokuArrTemp));
+    async againGame() {
+        this.sudokuArr = JSON.parse(JSON.stringify(this.sudokuArrTemp))
+        await this.sudokuArr;
     }
 
     // 开始游戏
-    startGame(difficulty) {
-        // let sudokuArr = await this.createSudoku(difficulty);
-        // this.sudokuArrTemp = JSON.parse(JSON.stringify(sudokuArr));
-        // return sudokuArr
-        this.createSudoku(difficulty).then(res => {
-            // this.sudokuArr = res
-            // console.error('res===>', res)
-            this.sudokuArrTemp = JSON.parse(JSON.stringify(this.sudokuArr));
-        })
+    async startGame(difficulty) {
+        await this.createSudoku(difficulty)
+        this.sudokuArrTemp = JSON.parse(JSON.stringify(this.sudokuArr));
     }
 
     // 写入
@@ -269,6 +279,7 @@ export class SudokuService extends Sudoku {
         this.sudokuArr[row][columns].isChange = true;
         step.valid = false
     }
+    
     static instance = null;
     static getInstance() {
         if (!this.instance) {

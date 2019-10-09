@@ -9,7 +9,7 @@ const Play = () => {
 
   // 开始游戏
   const startGame = () => {
-    sudokuService.createSudoku(3)
+    sudokuService.startGame(4)
     setSudokuArr([...sudokuService.sudokuArr])
   }
 
